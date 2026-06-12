@@ -1,4 +1,4 @@
-#include "DummyDataGenerator.h"
+﻿#include "DummyDataGenerator.h"
 
 DummyDataGenerator::DummyDataGenerator(std::shared_ptr<SampleStorage> sampleStorage,
                                         std::shared_ptr<OrderStorage>  orderStorage)
