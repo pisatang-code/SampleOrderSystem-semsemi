@@ -215,6 +215,44 @@ RESERVED → (거절)            → REJECTED
 
 ---
 
+### 추가 — 생산라인 실시간 타이머
+
+**목표:** 생산 승인 시각 기록 후 경과 시간 기반 진행률/자동 완료 구현
+
+| 항목 | 내용 |
+|------|------|
+| 상태 | ✅ 완료 |
+| 테스트 | 83개 (신규 7) |
+
+**구현 내용:**
+- `Order::approvedAt`: PRODUCING 전환 시 `time(nullptr)` 값을 epoch 초 문자열로 저장
+- `OrderController::approveOrder()`: PRODUCING 분기 시 `approvedAt` 기록
+- `ProductionController::ProductionInfo` 구조체: 진행률/경과시간/완료예정시각 포함
+- `ProductionController::getQueueInfo()`: 실시간 경과 시간 계산 → 진행률(%) / 완료예정(HH:MM)
+- `ProductionController::calcTotalTimeMinutes()`: 총 생산 시간 = 실생산량 × avgProductionTime
+- `ProductionController::autoComplete()`: 총 생산 시간 초과 주문 자동 CONFIRMED 전환
+  + `approvedAt` 없는 기존 PRODUCING 주문 마이그레이션 (앱 실행 시 현재 시각 기록)
+- `MainController::buildSummary()`: 메인 메뉴 진입마다 `autoComplete()` 호출
+- `handleProductionLine()`: Enter 새로고침, 진행률 표(진행률% / 경과/총시간 / 완료예정) 표시
+
+**설계 결정:**
+- `time(nullptr)` 사용 (POSIX, Windows 모두 지원) — epoch 초 단위 저장으로 계산 단순화
+- `approvedAt` 없는 기존 주문은 자동 완료 금지 (하위 호환) — 단, 앱 실행 시 마이그레이션으로 현재 시각 자동 기록
+- `getQueueInfo()`는 순수 조회(읽기만), 마이그레이션은 `autoComplete()`에서만 수행
+
+**신규 테스트:**
+| 테스트 | 검증 내용 |
+|--------|-----------|
+| `CalcTotalTimeMinutes` | 총 생산 시간 공식 |
+| `JsonRoundTripWithApprovedAt` | approvedAt 직렬화/역직렬화 |
+| `BackwardCompatEmptyApprovedAt` | 기존 JSON 하위 호환 |
+| `AutoCompleteFinishesExpiredOrder` | 과거 시각 → 자동 완료 |
+| `AutoCompleteSkipsNonExpiredOrder` | 미래 시각 → 자동 완료 안 됨 |
+| `AutoCompleteSkipsOrderWithoutApprovedAt` | approvedAt 없으면 자동 완료 안 됨 |
+| `GetQueueInfoPopulatesFields` | ProductionInfo 구조체 정상 채워짐 |
+
+---
+
 ### 추가 — 콘솔 UI 연결 및 버그 수정
 
 **목표:** Phase 1~6에서 구현된 비즈니스 로직을 실제 콘솔 화면에 연결
@@ -253,13 +291,15 @@ RESERVED → (거절)            → REJECTED
 | `calcActualProduction()` static 분리 | 표시 계산과 실제 처리 로직에서 동일 공식 재사용 |
 | 테스트용 파일 경로 주입 | `SampleStorage("test_tmp.json")` 형태로 테스트 격리 |
 | `displayWidth()` 직접 구현 | Windows 콘솔에서 한글 2칸 처리, 외부 라이브러리 불필요 |
-| FIFO = 삽입 순서 | `OrderStorage`가 삽입 순서를 유지하므로 별도 큐 불필요 |
+| FIFO = 삽입 순서 | `OrderStorage`가 삽입 순서를 유지하므로 별도 큐 자료구조 불필요 |
+| `approvedAt` epoch 초 문자열 | 계산이 단순 (뺄셈으로 경과 초 산출), JSON 직렬화 용이 |
+| 마이그레이션을 `autoComplete()` 에서 처리 | 앱 시작 시 자동 실행되어 기존 데이터에 투명하게 적용 |
 
 ---
 
 ## 5. 향후 개선 가능 사항
 
-- 실시간 생산 진행률 표시 (타이머 기반)
 - 주문번호 시퀀스를 영속적으로 관리 (재시작 후 중복 방지 강화)
 - 시료별 재고 초기화 기능 (관리자 메뉴)
 - 단일 JSON 파일을 DB로 사용 중이므로 데이터 증가 시 성능 검토 필요
+- 생산라인 FIFO 엄밀화: 선행 주문 완료 후 다음 주문 타이머 시작 (현재는 각 주문이 독립 타이머)
