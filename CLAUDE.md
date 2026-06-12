@@ -168,5 +168,5 @@ Phase 순서대로 진행하며, 각 Phase마다 아래 절차를 반드시 따�
 | Phase 2 — 시료 관리 | ✅ 완료 | 39/39 | SampleController: 등록/조회/검색, 유효성 검증 |
 | Phase 3 — 주문 접수 & 승인/거절 | ✅ 완료 | 51/51 | OrderController: 접수/승인/거절, 재고 분기, 주문번호 채번 |
 | Phase 4 — 생산라인 | ✅ 완료 | 60/60 | ProductionController: FIFO 큐, 생산 수량 계산, 완료 처리 |
-| Phase 5 — 모니터링 & 출고 처리 | ⬜ 대기 | - | |
+| Phase 5 — 모니터링 & 출고 처리 | ✅ 완료 | 70/70 | MonitoringController: 주문 집계, 재고 현황, 출고 처리 |
 | Phase 6 — 테스트 & 더미 데이터 | ⬜ 대기 | - | |

@@ -1,6 +1,7 @@
 #include "MonitoringController.h"
 #include <stdexcept>
 #include <algorithm>
+#include <unordered_map>
 
 MonitoringController::MonitoringController(std::shared_ptr<SampleStorage> sampleStorage,
                                            std::shared_ptr<OrderStorage>  orderStorage)
@@ -32,14 +33,16 @@ std::vector<Order> MonitoringController::getOrdersByStatus(OrderStatus status) c
 
 std::vector<MonitoringController::SampleStockInfo>
 MonitoringController::getStockStatuses() const {
-    std::vector<SampleStockInfo> result;
+    std::unordered_map<std::string, int> pendingMap;
+    for (const auto& o : m_orderStorage->readAll())
+        if (o.status != OrderStatus::REJECTED)
+            pendingMap[o.sampleId] += o.quantity;
 
+    std::vector<SampleStockInfo> result;
     for (const auto& sample : m_sampleStorage->readAll()) {
         int pending = 0;
-        for (const auto& o : m_orderStorage->readAll()) {
-            if (o.sampleId == sample.id && o.status != OrderStatus::REJECTED)
-                pending += o.quantity;
-        }
+        auto it = pendingMap.find(sample.id);
+        if (it != pendingMap.end()) pending = it->second;
 
         SampleStockInfo info;
         info.sample          = sample;
