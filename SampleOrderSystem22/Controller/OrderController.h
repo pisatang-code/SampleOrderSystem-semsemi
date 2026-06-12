@@ -22,4 +22,5 @@ private:
     std::shared_ptr<OrderStorage>  m_orderStorage;
 
     std::string generateOrderNumber() const;
+    Order       getReservedOrder(const std::string& orderNumber) const;
 };

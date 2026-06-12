@@ -30,18 +30,22 @@ std::string OrderController::receiveOrder(const std::string& sampleId,
     return o.orderNumber;
 }
 
-void OrderController::approveOrder(const std::string& orderNumber) {
+Order OrderController::getReservedOrder(const std::string& orderNumber) const {
     auto orderOpt = m_orderStorage->readById(orderNumber);
     if (!orderOpt.has_value())
         throw std::runtime_error("Order not found: " + orderNumber);
     if (orderOpt->status != OrderStatus::RESERVED)
-        throw std::runtime_error("Only RESERVED orders can be approved");
+        throw std::runtime_error("Only RESERVED orders can be processed");
+    return *orderOpt;
+}
 
-    auto sampleOpt = m_sampleStorage->readById(orderOpt->sampleId);
+void OrderController::approveOrder(const std::string& orderNumber) {
+    Order order = getReservedOrder(orderNumber);
+
+    auto sampleOpt = m_sampleStorage->readById(order.sampleId);
     if (!sampleOpt.has_value())
-        throw std::runtime_error("Sample not found: " + orderOpt->sampleId);
+        throw std::runtime_error("Sample not found: " + order.sampleId);
 
-    Order order   = *orderOpt;
     Sample sample = *sampleOpt;
 
     if (sample.stock >= order.quantity) {
@@ -56,13 +60,7 @@ void OrderController::approveOrder(const std::string& orderNumber) {
 }
 
 void OrderController::rejectOrder(const std::string& orderNumber) {
-    auto orderOpt = m_orderStorage->readById(orderNumber);
-    if (!orderOpt.has_value())
-        throw std::runtime_error("Order not found: " + orderNumber);
-    if (orderOpt->status != OrderStatus::RESERVED)
-        throw std::runtime_error("Only RESERVED orders can be rejected");
-
-    Order order  = *orderOpt;
+    Order order  = getReservedOrder(orderNumber);
     order.status = OrderStatus::REJECTED;
     m_orderStorage->update(order);
 }
