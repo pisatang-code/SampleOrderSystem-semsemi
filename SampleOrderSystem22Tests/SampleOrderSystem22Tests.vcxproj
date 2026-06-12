@@ -82,6 +82,7 @@
     <ClCompile Include="StorageTests.cpp" />
     <ClCompile Include="SampleManagementTests.cpp" />
     <ClCompile Include="OrderManagementTests.cpp" />
+    <ClCompile Include="ProductionLineTests.cpp" />
     <!-- Model source files from main project -->
     <ClCompile Include="$(SolutionDir)SampleOrderSystem22\Model\JsonUtil.cpp" />
     <ClCompile Include="$(SolutionDir)SampleOrderSystem22\Model\Sample.cpp" />
@@ -90,6 +91,7 @@
     <ClCompile Include="$(SolutionDir)SampleOrderSystem22\Model\OrderStorage.cpp" />
     <ClCompile Include="$(SolutionDir)SampleOrderSystem22\Controller\SampleController.cpp" />
     <ClCompile Include="$(SolutionDir)SampleOrderSystem22\Controller\OrderController.cpp" />
+    <ClCompile Include="$(SolutionDir)SampleOrderSystem22\Controller\ProductionController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -84,6 +84,7 @@
     <ClCompile Include="Controller\MainController.cpp" />
     <ClCompile Include="Controller\SampleController.cpp" />
     <ClCompile Include="Controller\OrderController.cpp" />
+    <ClCompile Include="Controller\ProductionController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Model\OrderStatus.h" />
