@@ -108,6 +108,23 @@ DummyDataGenerator PoC(`https://github.com/pisatang-code/DummyDataGenerator-sems
 
 ---
 
+## 개발 진행 방식
+
+Phase 순서대로 진행하며, 각 Phase마다 아래 절차를 반드시 따른다.
+
+1. **TDD로 구현** — `/tdd` 스킬을 사용하여 테스트 먼저 작성 → 실패 확인 → 최소 구현 → 통과 확인
+2. **Unit Test 검증** — 해당 Phase의 모든 테스트가 통과하면 사람에게 결과 보고 후 git commit
+3. **Refactoring** — Clean Code 유지를 위해 리팩토링 수행. 테스트가 계속 통과하는지 확인 후 git commit
+4. **다음 Phase 진행** — 위 절차가 완료된 후에만 다음 Phase로 넘어간다
+5. **문제 발생 시 즉시 중단** — 검증 또는 리팩토링 중 문제가 생기면 사람에게 보고하고 멈춘다
+
+모든 Phase 완료 후:
+- **통합 검증** 수행 → git commit
+- **최종 Refactoring** 수행 → git commit
+- 완료 후 사람에게 보고한다
+
+---
+
 ## 개발 Phase
 
 ### Phase 1 — 기반 구조
