@@ -122,6 +122,22 @@ TEST_F(ProductionControllerTest, CompleteProductionAddsStockAndDeducts) {
     EXPECT_EQ(sample->stock, 3);  // 13 생산 - 10 출고 = 3 남음
 }
 
+TEST_F(ProductionControllerTest, CompleteProductionWithExistingStock) {
+    // stock=5, order=10, yieldRate=0.9
+    // shortage = 10-5 = 5
+    // actualProduction = ceil(5/(0.9*0.9)) = ceil(6.17) = 7
+    // 생산 후 재고 = 5 + 7 - 10 = 2
+    m_sampleStorage->create(makeSample("S001", 30, 0.9, 5));
+    m_orderStorage->create(makeProducingOrder("ORD-001", "S001", 10));
+
+    ProductionController ctrl(m_sampleStorage, m_orderStorage);
+    ctrl.completeProduction("ORD-001");
+
+    auto sample = m_sampleStorage->readById("S001");
+    ASSERT_TRUE(sample.has_value());
+    EXPECT_EQ(sample->stock, 2);
+}
+
 TEST_F(ProductionControllerTest, CompleteProductionNonProducingThrows) {
     m_sampleStorage->create(makeSample("S001", 30, 0.9));
     Order o;

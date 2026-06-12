@@ -7,6 +7,23 @@
 #include <limits>
 #include <string>
 
+int ConsoleView::displayWidth(const std::string& s) {
+    int w = 0;
+    for (size_t i = 0; i < s.size(); ) {
+        unsigned char c = static_cast<unsigned char>(s[i]);
+        if      (c < 0x80) { w += 1; i += 1; }
+        else if (c < 0xE0) { w += 1; i += 2; }
+        else if (c < 0xF0) { w += 2; i += 3; }  // 3-byte: 한글/CJK 2칸
+        else               { w += 2; i += 4; }
+    }
+    return w;
+}
+
+std::string ConsoleView::padRight(const std::string& s, int col) {
+    int pad = col - displayWidth(s);
+    return s + (pad > 0 ? std::string(pad, ' ') : "");
+}
+
 void ConsoleView::clearScreen() {
     system("cls");
 }

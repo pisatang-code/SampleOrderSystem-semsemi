@@ -24,6 +24,10 @@ public:
     void        showSeparator(int width = 42);
     void        showHeader(const std::string& title);
 
+    // 한글(2칸) 포함 문자열을 col 디스플레이 너비에 맞게 우측 패딩
+    static int         displayWidth(const std::string& s);
+    static std::string padRight(const std::string& s, int col);
+
 private:
     Summary m_summary;
 };

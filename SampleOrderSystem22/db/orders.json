@@ -1,0 +1,4 @@
+[
+  {"orderNumber":"ORD-20260612-0001","customerName":"CompanyA","sampleId":"S001","quantity":50,"status":"RELEASE"},
+  {"orderNumber":"ORD-20260612-0002","customerName":"CompanyB","sampleId":"S001","quantity":10,"status":"CONFIRMED"}
+]

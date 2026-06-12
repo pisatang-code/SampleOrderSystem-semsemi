@@ -33,7 +33,9 @@ void ProductionController::completeProduction(const std::string& orderNumber) {
     Order  order  = *orderOpt;
     Sample sample = *sampleOpt;
 
-    int actualProduction = calcActualProduction(order.quantity, sample.yieldRate);
+    // PRD: 실생산량 = ceil(부족분 / (수율 * 0.9)), 부족분 = 주문량 - 현재재고
+    int shortage         = std::max(0, order.quantity - sample.stock);
+    int actualProduction = calcActualProduction(shortage, sample.yieldRate);
     sample.stock += actualProduction;
     sample.stock -= order.quantity;   // 주문분 즉시 차감
 
