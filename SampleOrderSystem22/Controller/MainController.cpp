@@ -146,11 +146,26 @@ void MainController::handleOrderReception() {
         return;
     }
 
+    using V = ConsoleView;
     std::cout << "[\xEB\x93\xB1\xEB\xA1\x9D\xEB\x90\x9C \xEC\x8B\x9C\xEB\xA3\x8C]\n";
-    for (const auto& s : samples)
-        std::cout << "  " << s.id << "  " << s.name
-                  << "  \xEC\x9E\xAC\xEA\xB3\xA0: " << s.stock << "\n";
-    m_view->showSeparator();
+    std::cout << V::padRight("ID", 8)
+              << V::padRight("\xEC\x9D\xB4\xEB\xA6\x84", 20)
+              << V::padRight("\xEC\x83\x9D\xEC\x82\xB0\xEC\x8B\x9C\xEA\xB0\x84", 10)
+              << V::padRight("\xEC\x88\x98\xEC\x9C\xA8", 8)
+              << "\xEC\x9E\xAC\xEA\xB3\xA0\n";
+    m_view->showSeparator(46);
+    for (const auto& s : samples) {
+        std::ostringstream apt;
+        apt << s.avgProductionTime << "min";
+        std::ostringstream yr;
+        yr << std::fixed << std::setprecision(2) << s.yieldRate;
+        std::cout << V::padRight(s.id, 8)
+                  << V::padRight(s.name, 20)
+                  << V::padRight(apt.str(), 10)
+                  << V::padRight(yr.str(), 8)
+                  << s.stock << "\n";
+    }
+    m_view->showSeparator(46);
 
     std::string sampleId     = m_view->getString("\xEC\x8B\x9C\xEB\xA3\x8C ID: ");
     std::string customerName = m_view->getString("\xEA\xB3\xA0\xEA\xB0\x9D\xEB\xAA\x85: ");
