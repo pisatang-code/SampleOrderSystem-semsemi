@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleOrderSystem22", "SampleOrderSystem22\SampleOrderSystem22.vcxproj", "{B8A7C6D5-E4F3-4A1B-9C8D-7E6F5A4B3C2D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleOrderSystem22Tests", "SampleOrderSystem22Tests\SampleOrderSystem22Tests.vcxproj", "{F1E2D3C4-B5A6-4789-FEDC-BA9876543210}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{B8A7C6D5-E4F3-4A1B-9C8D-7E6F5A4B3C2D}.Debug|x64.Build.0 = Debug|x64
 		{B8A7C6D5-E4F3-4A1B-9C8D-7E6F5A4B3C2D}.Release|x64.ActiveCfg = Release|x64
 		{B8A7C6D5-E4F3-4A1B-9C8D-7E6F5A4B3C2D}.Release|x64.Build.0 = Release|x64
+		{F1E2D3C4-B5A6-4789-FEDC-BA9876543210}.Debug|x64.ActiveCfg = Debug|x64
+		{F1E2D3C4-B5A6-4789-FEDC-BA9876543210}.Debug|x64.Build.0 = Debug|x64
+		{F1E2D3C4-B5A6-4789-FEDC-BA9876543210}.Release|x64.ActiveCfg = Release|x64
+		{F1E2D3C4-B5A6-4789-FEDC-BA9876543210}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
