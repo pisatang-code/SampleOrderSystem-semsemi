@@ -25,7 +25,16 @@ std::string ConsoleView::padRight(const std::string& s, int col) {
 }
 
 void ConsoleView::clearScreen() {
-    system("cls");
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    COORD origin = {0, 0};
+    DWORD written;
+    if (GetConsoleScreenBufferInfo(hOut, &csbi)) {
+        DWORD cells = csbi.dwSize.X * csbi.dwSize.Y;
+        FillConsoleOutputCharacterA(hOut, ' ', cells, origin, &written);
+        FillConsoleOutputAttribute(hOut, csbi.wAttributes, cells, origin, &written);
+    }
+    SetConsoleCursorPosition(hOut, origin);
 }
 
 void ConsoleView::showSeparator(int width) {
