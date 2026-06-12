@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <algorithm>
+#include <ctime>
 
 OrderController::OrderController(std::shared_ptr<SampleStorage> sampleStorage,
                                  std::shared_ptr<OrderStorage>  orderStorage)
@@ -52,7 +53,8 @@ void OrderController::approveOrder(const std::string& orderNumber) {
         sample.stock -= order.quantity;
         order.status  = OrderStatus::CONFIRMED;
     } else {
-        order.status = OrderStatus::PRODUCING;
+        order.status     = OrderStatus::PRODUCING;
+        order.approvedAt = std::to_string(static_cast<long long>(time(nullptr)));
     }
 
     m_sampleStorage->update(sample);

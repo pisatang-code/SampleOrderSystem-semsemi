@@ -9,7 +9,8 @@ std::string Order::toJsonObject() const {
        << "\"customerName\":\"" << JsonUtil::escapeJson(customerName) << "\","
        << "\"sampleId\":\""     << JsonUtil::escapeJson(sampleId)     << "\","
        << "\"quantity\":"       << quantity                            << ","
-       << "\"status\":\""       << orderStatusToString(status)        << "\""
+       << "\"status\":\""       << orderStatusToString(status)        << "\","
+       << "\"approvedAt\":\""  << JsonUtil::escapeJson(approvedAt)   << "\""
        << "}";
     return ss.str();
 }
@@ -23,5 +24,6 @@ Order Order::fromJsonObject(const std::string& json) {
     if (!qty.empty()) o.quantity = std::stoi(qty);
     auto st = JsonUtil::getValue(json, "status");
     if (!st.empty())  o.status = orderStatusFromString(st);
+    o.approvedAt = JsonUtil::getValue(json, "approvedAt");  // 없으면 ""
     return o;
 }

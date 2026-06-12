@@ -41,6 +41,9 @@ void MainController::run() {
 }
 
 ConsoleView::Summary MainController::buildSummary() const {
+    // 메인 메뉴 진입마다 자동 완료 체크
+    m_productionCtrl->autoComplete();
+
     ConsoleView::Summary s;
     for (const auto& sample : m_sampleStorage->readAll()) {
         ++s.sampleCount;
@@ -291,53 +294,71 @@ void MainController::handleMonitoring() {
 
 void MainController::handleProductionLine() {
     while (true) {
+        // 자동 완료 체크 후 화면 갱신
+        m_productionCtrl->autoComplete();
+
         m_view->clearScreen();
         m_view->showHeader("\xEC\x83\x9D\xEC\x82\xB0\xEB\x9D\xBC\xEC\x9D\xB8 \xEC\xA1\xB0\xED\x9A\x8C");
 
-        auto queue = m_productionCtrl->getQueue();
-        if (queue.empty()) {
+        auto queueInfo = m_productionCtrl->getQueueInfo();
+        if (queueInfo.empty()) {
             std::cout << "\xEC\x83\x9D\xEC\x82\xB0 \xEB\x8C\x80\xEA\xB8\xB0 \xEC\xA3\xBC\xEB\xAC\xB8\xEC\x9D\xB4 \xEC\x97\x86\xEC\x8A\xB5\xEB\x8B\x88\xEB\x8B\xA4.\n";
             m_view->pressEnterToContinue();
             return;
         }
 
         using V = ConsoleView;
+        // 헤더: No. / 주문번호 / 시료ID / 수량 / 진행률 / 경과/총시간 / 완료예정
         std::cout << V::padRight("No.", 4)
                   << V::padRight("\xEC\xA3\xBC\xEB\xAC\xB8\xEB\xB2\x88\xED\x98\xB8", 20)
                   << V::padRight("\xEC\x8B\x9C\xEB\xA3\x8CID", 10)
-                  << V::padRight("\xEC\xA3\xBC\xEB\xAC\xB8\xEB\x9F\x89", 8)
-                  << V::padRight("\xEC\x8B\xA4\xEC\x83\x9D\xEC\x82\xB0\xEB\x9F\x89", 10)
-                  << "\xEC\xB4\x9D\xEC\x8B\x9C\xEA\xB0\x84\n";
-        m_view->showSeparator(56);
+                  << V::padRight("\xEC\x88\x98\xEB\x9F\x89", 6)
+                  << V::padRight("\xEC\xA7\x84\xED\x96\x89\xEB\xA5\xA0", 8)
+                  << V::padRight("\xEA\xB2\xBD\xEA\xB3\xBC/\xEC\xB4\x9D\xEC\x8B\x9C\xEA\xB0\x84", 16)
+                  << "\xEC\x99\x84\xEB\xA3\x8C\xEC\x98\x88\xEC\xA0\x95\n";
+        m_view->showSeparator(66);
 
-        for (size_t i = 0; i < queue.size(); ++i) {
-            const auto& o = queue[i];
-            auto sampleOpt = m_sampleStorage->readById(o.sampleId);
-            if (!sampleOpt) continue;
-            int shortage   = std::max(0, o.quantity - sampleOpt->stock);
-            int actual     = ProductionController::calcActualProduction(shortage, sampleOpt->yieldRate);
-            int totalTime  = sampleOpt->avgProductionTime * actual;
+        for (size_t i = 0; i < queueInfo.size(); ++i) {
+            const auto& info = queueInfo[i];
+            std::string progressStr, elapsedStr;
+
+            if (info.hasTimer) {
+                progressStr = std::to_string(info.progressPercent) + "%";
+                elapsedStr  = std::to_string(info.elapsedMinutes) + "/"
+                            + std::to_string(info.totalTimeMinutes) + "min";
+            } else {
+                // approvedAt 미설정 — 타이머 없음
+                progressStr = "--";
+                elapsedStr  = "0/" + std::to_string(info.totalTimeMinutes) + "min";
+            }
+
             std::cout << V::padRight(std::to_string(i + 1), 4)
-                      << V::padRight(o.orderNumber, 20)
-                      << V::padRight(o.sampleId, 10)
-                      << V::padRight(std::to_string(o.quantity), 8)
-                      << V::padRight(std::to_string(actual), 10)
-                      << totalTime << "min\n";
+                      << V::padRight(info.order.orderNumber, 20)
+                      << V::padRight(info.order.sampleId, 10)
+                      << V::padRight(std::to_string(info.order.quantity), 6)
+                      << V::padRight(progressStr, 8)
+                      << V::padRight(elapsedStr, 16)
+                      << info.etaStr << "\n";
         }
-        m_view->showSeparator(56);
+        m_view->showSeparator(66);
 
-        std::string orderNum = m_view->getString(
-            "\xEC\x83\x9D\xEC\x82\xB0 \xEC\x99\x84\xEB\xA3\x8C \xEC\xB2\x98\xEB\xA6\xAC\xED\x95\xA0 \xEC\xA3\xBC\xEB\xAC\xB8\xEB\xB2\x88\xED\x98\xB8 (0:\xEB\x8F\x8C\xEC\x95\x84\xEA\xB0\x80\xEA\xB8\xB0): ");
+        std::cout << "\n"
+                  << "\xEC\xA3\xBC\xEB\xAC\xB8\xEB\xB2\x88\xED\x98\xB8 \xEC\x9E\x85\xEB\xA0\xA5"
+                     " (Enter:\xEC\x83\x88\xEB\xA1\x9C\xEA\xB3\xA0\xEC\xB9\xA8"
+                     ", 0:\xEB\x8F\x8C\xEC\x95\x84\xEA\xB0\x80\xEA\xB8\xB0): ";
+        std::string orderNum = m_view->getString("");
         if (orderNum == "0") break;
+        if (orderNum.empty()) continue;  // Enter → 화면 새로고침
 
         try {
             m_productionCtrl->completeProduction(orderNum);
             std::cout << "\n[\xEC\x83\x9D\xEC\x82\xB0 \xEC\x99\x84\xEB\xA3\x8C] " << orderNum
                       << " -> CONFIRMED\n";
+            m_view->pressEnterToContinue();
         } catch (const std::exception& e) {
             std::cout << "[\xEC\x98\xA4\xEB\xA5\x98] " << e.what() << "\n";
+            m_view->pressEnterToContinue();
         }
-        m_view->pressEnterToContinue();
     }
 }
 

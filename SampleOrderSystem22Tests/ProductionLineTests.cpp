@@ -4,6 +4,7 @@
 #include "Controller/ProductionController.h"
 #include <cstdio>
 #include <cmath>
+#include <ctime>
 
 class ProductionControllerTest : public ::testing::Test {
 protected:
@@ -153,4 +154,103 @@ TEST_F(ProductionControllerTest, CompleteProductionNonProducingThrows) {
 TEST_F(ProductionControllerTest, GetQueueEmptyWhenNoProducingOrders) {
     ProductionController ctrl(m_sampleStorage, m_orderStorage);
     EXPECT_TRUE(ctrl.getQueue().empty());
+}
+
+// ===== calcTotalTimeMinutes =====
+
+TEST(ProductionCalcTest, CalcTotalTimeMinutes) {
+    EXPECT_EQ(ProductionController::calcTotalTimeMinutes(7,  30), 210);
+    EXPECT_EQ(ProductionController::calcTotalTimeMinutes(13, 30), 390);
+    EXPECT_EQ(ProductionController::calcTotalTimeMinutes(1,   1),   1);
+}
+
+// ===== approvedAt 직렬화 왕복 =====
+
+TEST(OrderApprovedAtTest, JsonRoundTripWithApprovedAt) {
+    Order o;
+    o.orderNumber  = "ORD-001";
+    o.customerName = "C";
+    o.sampleId     = "S001";
+    o.quantity     = 5;
+    o.status       = OrderStatus::PRODUCING;
+    o.approvedAt   = "1700000000";
+
+    Order restored = Order::fromJsonObject(o.toJsonObject());
+    EXPECT_EQ(restored.approvedAt, "1700000000");
+    EXPECT_EQ(restored.status, OrderStatus::PRODUCING);
+}
+
+TEST(OrderApprovedAtTest, BackwardCompatEmptyApprovedAt) {
+    // approvedAt 필드가 없는 기존 JSON도 파싱 가능해야 한다
+    std::string json =
+        "{\"orderNumber\":\"ORD-001\",\"customerName\":\"C\","
+        "\"sampleId\":\"S001\",\"quantity\":5,\"status\":\"PRODUCING\"}";
+    Order o = Order::fromJsonObject(json);
+    EXPECT_TRUE(o.approvedAt.empty());
+    EXPECT_EQ(o.status, OrderStatus::PRODUCING);
+}
+
+// ===== autoComplete =====
+
+TEST_F(ProductionControllerTest, AutoCompleteFinishesExpiredOrder) {
+    m_sampleStorage->create(makeSample("S001", 30, 0.9, 0));
+    Order o = makeProducingOrder("ORD-001", "S001", 5);
+    o.approvedAt = "1";  // epoch 1 = 매우 오래된 시각 → 무조건 완료
+    m_orderStorage->create(o);
+
+    ProductionController ctrl(m_sampleStorage, m_orderStorage);
+    ctrl.autoComplete();
+
+    auto order = m_orderStorage->readById("ORD-001");
+    ASSERT_TRUE(order.has_value());
+    EXPECT_EQ(order->status, OrderStatus::CONFIRMED);
+}
+
+TEST_F(ProductionControllerTest, AutoCompleteSkipsNonExpiredOrder) {
+    m_sampleStorage->create(makeSample("S001", 30, 0.9, 0));
+    Order o = makeProducingOrder("ORD-001", "S001", 5);
+    // 현재로부터 매우 먼 미래 → 아직 완료 안 됨
+    o.approvedAt = std::to_string(static_cast<long long>(time(nullptr)) + 99999LL);
+    m_orderStorage->create(o);
+
+    ProductionController ctrl(m_sampleStorage, m_orderStorage);
+    ctrl.autoComplete();
+
+    auto order = m_orderStorage->readById("ORD-001");
+    ASSERT_TRUE(order.has_value());
+    EXPECT_EQ(order->status, OrderStatus::PRODUCING);
+}
+
+TEST_F(ProductionControllerTest, AutoCompleteSkipsOrderWithoutApprovedAt) {
+    // approvedAt 없는 기존 주문은 자동 완료되면 안 된다
+    m_sampleStorage->create(makeSample("S001", 30, 0.9, 0));
+    Order o = makeProducingOrder("ORD-001", "S001", 5);
+    o.approvedAt = "";  // 미설정
+    m_orderStorage->create(o);
+
+    ProductionController ctrl(m_sampleStorage, m_orderStorage);
+    ctrl.autoComplete();
+
+    auto order = m_orderStorage->readById("ORD-001");
+    ASSERT_TRUE(order.has_value());
+    EXPECT_EQ(order->status, OrderStatus::PRODUCING);
+}
+
+// ===== getQueueInfo =====
+
+TEST_F(ProductionControllerTest, GetQueueInfoPopulatesFields) {
+    m_sampleStorage->create(makeSample("S001", 30, 0.9, 0));
+    Order o = makeProducingOrder("ORD-001", "S001", 10);
+    o.approvedAt = "1";  // 과거 시각
+    m_orderStorage->create(o);
+
+    ProductionController ctrl(m_sampleStorage, m_orderStorage);
+    auto infos = ctrl.getQueueInfo();
+
+    ASSERT_EQ(infos.size(), 1u);
+    EXPECT_EQ(infos[0].order.orderNumber, "ORD-001");
+    EXPECT_GT(infos[0].totalTimeMinutes, 0);
+    EXPECT_TRUE(infos[0].hasTimer);
+    EXPECT_EQ(infos[0].progressPercent, 100);  // 과거 시각이므로 100%
+    EXPECT_TRUE(infos[0].isComplete);
 }
