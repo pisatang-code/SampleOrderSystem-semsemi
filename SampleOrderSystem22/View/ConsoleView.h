@@ -1,5 +1,6 @@
 #pragma once
 #include "IView.h"
+#include <string>
 
 class ConsoleView : public IView {
 public:
@@ -14,6 +15,14 @@ public:
     void render()                              override;
     void showMessage(const std::string& msg)   override;
     int  getInput()                            override;
+
+    std::string getString(const std::string& prompt);
+    int         getInt(const std::string& prompt);
+    double      getDouble(const std::string& prompt);
+    void        pressEnterToContinue();
+    void        clearScreen();
+    void        showSeparator(int width = 42);
+    void        showHeader(const std::string& title);
 
 private:
     Summary m_summary;
