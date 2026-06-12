@@ -1,0 +1,22 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.aps
+
+# Build output
+x64/
+Debug/
+Release/
+ipch/
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.exe
+*.dll
+*.obj
+
+# NuGet
+packages/*/
+!packages/repositories.config
