@@ -3,6 +3,14 @@
 #include <cctype>
 #include <stdexcept>
 
+namespace {
+    std::string toLower(std::string s) {
+        std::transform(s.begin(), s.end(), s.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+        return s;
+    }
+}
+
 SampleController::SampleController(std::shared_ptr<SampleStorage> storage)
     : m_storage(storage) {}
 
@@ -28,11 +36,6 @@ std::vector<Sample> SampleController::getAllSamples() const {
 }
 
 std::vector<Sample> SampleController::searchByName(const std::string& keyword) const {
-    auto toLower = [](std::string s) {
-        std::transform(s.begin(), s.end(), s.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
-        return s;
-    };
     std::string lowerKey = toLower(keyword);
 
     std::vector<Sample> results;
