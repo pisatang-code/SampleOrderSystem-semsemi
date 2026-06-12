@@ -101,3 +101,4 @@ Phase 순서대로 진행하며, 각 Phase마다 아래 절차를 반드시 따�
 | Phase 5 — 모니터링 & 출고 처리 | ✅ 완료 | 70/70 | MonitoringController: 주문 집계, 재고 현황, 출고 처리 |
 | Phase 6 — 테스트 & 더미 데이터 | ✅ 완료 | 75/75 | DummyDataGenerator: 멱등 populate(), 시료 5개/주문 6개 |
 | 추가 — 콘솔 UI 연결 | ✅ 완료 | 76/76 | MainController → 전체 서브메뉴 연결, padRight 정렬, PRODUCING 버그 수정 |
+| 추가 — 실시간 생산 타이머 | ✅ 완료 | 83/83 | Order.approvedAt, 진행률/완료예정 표시, autoComplete 자동 전환 |
