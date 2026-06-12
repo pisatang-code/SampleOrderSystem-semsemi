@@ -79,9 +79,14 @@ std::vector<std::string> parseObjects(const std::string& content) {
             size_t start = pos;
             int depth = 0;
             bool inStr = false;
+            bool escaped = false;
             while (pos < content.size()) {
                 char c = content[pos];
-                if (!inStr) {
+                if (inStr) {
+                    if      (escaped)   escaped = false;
+                    else if (c == '\\') escaped = true;
+                    else if (c == '"')  inStr = false;
+                } else {
                     if      (c == '{') ++depth;
                     else if (c == '}') {
                         --depth;
@@ -91,8 +96,6 @@ std::vector<std::string> parseObjects(const std::string& content) {
                             break;
                         }
                     } else if (c == '"') inStr = true;
-                } else {
-                    if (c == '"' && pos > 0 && content[pos - 1] != '\\') inStr = false;
                 }
                 ++pos;
             }

@@ -1,7 +1,6 @@
 #include "SampleStorage.h"
 #include "JsonUtil.h"
 #include <algorithm>
-#include <sstream>
 
 SampleStorage::SampleStorage(const std::string& filePath) : m_filePath(filePath) {}
 
@@ -49,13 +48,5 @@ bool SampleStorage::remove(const std::string& id) {
 }
 
 void SampleStorage::save(const std::vector<Sample>& items) const {
-    std::ostringstream ss;
-    ss << "[\n";
-    for (size_t i = 0; i < items.size(); ++i) {
-        ss << "  " << items[i].toJsonObject();
-        if (i + 1 < items.size()) ss << ",";
-        ss << "\n";
-    }
-    ss << "]";
-    JsonUtil::writeFile(m_filePath, ss.str());
+    JsonUtil::writeFile(m_filePath, JsonUtil::serializeArray(items));
 }

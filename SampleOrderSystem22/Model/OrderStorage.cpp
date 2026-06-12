@@ -1,7 +1,6 @@
 #include "OrderStorage.h"
 #include "JsonUtil.h"
 #include <algorithm>
-#include <sstream>
 
 OrderStorage::OrderStorage(const std::string& filePath) : m_filePath(filePath) {}
 
@@ -49,13 +48,5 @@ bool OrderStorage::remove(const std::string& id) {
 }
 
 void OrderStorage::save(const std::vector<Order>& items) const {
-    std::ostringstream ss;
-    ss << "[\n";
-    for (size_t i = 0; i < items.size(); ++i) {
-        ss << "  " << items[i].toJsonObject();
-        if (i + 1 < items.size()) ss << ",";
-        ss << "\n";
-    }
-    ss << "]";
-    JsonUtil::writeFile(m_filePath, ss.str());
+    JsonUtil::writeFile(m_filePath, JsonUtil::serializeArray(items));
 }
