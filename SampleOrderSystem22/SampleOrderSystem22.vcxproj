@@ -80,6 +80,7 @@
     <ClCompile Include="Model\JsonUtil.cpp" />
     <ClCompile Include="Model\SampleStorage.cpp" />
     <ClCompile Include="Model\OrderStorage.cpp" />
+    <ClCompile Include="Model\DummyDataGenerator.cpp" />
     <ClCompile Include="View\ConsoleView.cpp" />
     <ClCompile Include="Controller\MainController.cpp" />
     <ClCompile Include="Controller\SampleController.cpp" />
